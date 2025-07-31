@@ -1,0 +1,22 @@
+{
+  "notes": {
+    "A": -3,
+    "A-sharp": -2,
+    "B-flat": -2,
+    "B": -1,
+    "C": 0,
+    "C-sharp": 1,
+    "D-flat": 1,
+    "D": 2,
+    "D-sharp": 3,
+    "E-flat": 3,
+    "E": 4,
+    "F": 5,
+    "F-sharp": 6,
+    "G-flat": 6,
+    "G": 7,
+    "G-sharp": 8,
+    "A-flat": 8
+  }
+
+}
