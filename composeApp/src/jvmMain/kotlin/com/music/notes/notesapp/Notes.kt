@@ -52,27 +52,25 @@ fun getNotes(filepath: String, numNotes: Int): Map<Note, Int> {
        UPDATED: the notes themselves are now the keys and the values are their distance away from C (in semitones) this is much
        smarter (credit to me) and makes it so intuitive to recognise enharmonic equivalents
          */
-        println(cleanedNotes.keys.toList()[5])
 
-        val enharmonicEquivalent: String =
+        val noteClassMap = buildMap<Note, Int> (numNotes) {
+            cleanedNotes.forEach {
+                val currentNote = it.key
+                val currentSemitoneGap = it.value // how many semitones from C it is
+                val potentialEnharmonicEquivalent  = cleanedNotes.filter { (key, value) -> value == currentSemitoneGap && key != currentNote }.keys.toList()
 
+                val enharmonicEquivalent = if (potentialEnharmonicEquivalent.size == 1) potentialEnharmonicEquivalent[0] else null
+                // there has to be a better way to compute the enharmonic equivalent, we'll do that later.
 
-        for (i in 0..numNotes - 1) {
-            val noteKeyFilter = cleanedNotes.filter { it.value == cleanedNotes.values.toList()[i] }.keys.toList()
-            val currentKey = cleanedNotes.keys.toList()[i]
-
-
-
-
-            val noteInstance = Note(currentKey, enharmonicEquivalent)
-
-            val newTrueNoteMap = buildMap {
-                cleanedNotes.entries.forEach { (key, value) ->
-                    put(noteInstance, value)
-                }
+                val noteInstance = Note(currentNote, enharmonicEquivalent)
+                put(noteInstance, it.value)
             }
         }
-    }
 
-    return emptyMap()
+        return noteClassMap.toMap()
+        }
+
+    catch(e: SerializationException) {
+        return emptyMap()
+    }
 }
