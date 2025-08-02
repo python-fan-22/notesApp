@@ -36,7 +36,7 @@ class NoteManager(val filepath: String, val numNotes: Int) {
                     "$coreNote♭"
                 }
                 2 if splitNoteString[1] == "sharp" -> {
-                    "$coreNote#"
+                    "$coreNote♯"
                 }
                 else -> {
                     coreNote
@@ -86,8 +86,8 @@ class NoteManager(val filepath: String, val numNotes: Int) {
     val loadedNoteMap = noteClassMap
     val pureNoteList = loadedNoteMap.keys.toList()
 
-    fun selectNote(omittedNote: Note? = Note("placeholder", "placeholder", "placeholder")
-    ): Note? {
+    fun selectNote(omittedNote: Note = Note("placeholder", "placeholder", "placeholder")
+    ): Note {
         val sampleNoteList = pureNoteList - omittedNote
         val selectedNote = sampleNoteList.random()
 

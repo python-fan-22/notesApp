@@ -19,6 +19,9 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import kotlin.coroutines.cancellation.CancellationException
 import androidx.compose.runtime.State
+import java.io.File
+import javax.sound.sampled.AudioSystem
+import kotlin.time.Duration.Companion.milliseconds
 
 class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteManager: NoteManager) { // interval is in MS
     private val _counter = mutableStateOf(0)
@@ -27,7 +30,7 @@ class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteMa
     private val _metronomeTick = mutableStateOf(0)
     val metronomeTick: Int get() = _metronomeTick.value
 
-    private val _currentNote = mutableStateOf<NoteManager.Note>(NoteManager.Note("", "", ""))
+    private val _currentNote = mutableStateOf<NoteManager.Note>(noteManager.selectNote())
     val currentNote: NoteManager.Note get() = _currentNote.value
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -43,13 +46,17 @@ class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteMa
 
                         // we're going to implement not playing enharmonic equivalents later.
 
-                        val newNote = noteManager.selectNote()
-                        val newCounter = _counter.value + 1
-                        val newTick = if (_metronomeTick.value >= metronomeTickLimit - 1) 0 else _metronomeTick.value + 1
 
-                        _currentNote.value = newNote!!
+                        val newCounter = _counter.value + 1
+                        val newNote = if (_metronomeTick.value >= metronomeTickLimit ) noteManager.selectNote() else _currentNote.value
+                        val newTick = if (_metronomeTick.value >= metronomeTickLimit ) 1 else _metronomeTick.value + 1
+
+                        //if (_metronomeTick.value == metronomeTickLimit) noteManager.selectNote() else _currentNote.value
+                        _currentNote.value = newNote
                         _counter.value = newCounter
                         _metronomeTick.value = newTick
+
+                        metronomePlayAudio("/home/reuben/IdeaProjects/notesApp/appData/images/sound")
                         delay(interval)
                     }
 
@@ -71,5 +78,15 @@ class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteMa
 
     fun destroy() {
         scope.cancel()
+    }
+
+    fun metronomePlayAudio(audioDir: String) {
+        val trueAudioDir = "$audioDir/tick.wav"
+
+        val tickNoise = AudioSystem.getClip()
+        val audioInputStream = AudioSystem.getAudioInputStream(File(trueAudioDir))
+
+        tickNoise.open(audioInputStream)
+        tickNoise.start()
     }
 }
