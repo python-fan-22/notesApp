@@ -1,39 +1,55 @@
 package com.music.notes.notesapp
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
-import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.TimeZone
-import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.isActive
 
-import notesapp.composeapp.generated.resources.Res
-import notesapp.composeapp.generated.resources.compose_multiplatform
 
-@Composable
-@Preview
-fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        val greeting = remember { Greeting().greet() }
+class NoteAppCompose(val metronomeManagementInstance: MetronomeState) {
+    @Composable
+    @Preview
+    fun NotesApp() {
+        MaterialTheme {
+        val counter = metronomeManagementInstance.counter
+        var isActive by remember { mutableStateOf(true) }
+        val currentNote = metronomeManagementInstance.currentNote
+
+        LaunchedEffect(isActive) {
+            if(isActive) {
+                metronomeManagementInstance.start()
+            }
+            else {
+                metronomeManagementInstance.stop()
+            }
+            awaitCancellation()
+        }
+
+        DisposableEffect(Unit) {
+            onDispose { metronomeManagementInstance.destroy() }
+
+        }
+
         Column(
             modifier = Modifier
                 .safeContentPadding()
@@ -41,29 +57,15 @@ fun App() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Today's date is ${todaysDate()}",
+                text = "Today's date is ${currentNote.parse()}",
                 modifier = Modifier.padding(20.dp),
                 fontSize = 24.sp,
                 textAlign = TextAlign.Center
             )
-            Button(onClick = { showContent = !showContent }) {
+            Button(onClick = { isActive = !isActive }) {
                 Text("Click me!")
             }
-            AnimatedVisibility(showContent) {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+        }
         }
     }
 }
-
-fun todaysDate(): String {
-    fun LocalDateTime.format() = toString().substringBefore('T')
-
-    val now = Clock.System.now()
-    val zone = TimeZone.currentSystemDefault()
-    return now.toLocalDateTime(zone).format()
-}
-
