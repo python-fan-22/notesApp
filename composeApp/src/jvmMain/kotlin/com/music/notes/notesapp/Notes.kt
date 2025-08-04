@@ -70,7 +70,7 @@ class NoteManager(val filepath: String, val numNotes: Int) {
                             if (potentialEnharmonicEquivalent.size == 1) potentialEnharmonicEquivalent[0] else null
                         // there has to be a better way to compute the enharmonic equivalent, we'll do that later.
 
-                        val noteInstance = Note(currentNote, enharmonicEquivalent, "/home/reuben/IdeaProjects/notesApp/appData/notes.json")
+                        val noteInstance = Note(currentNote, enharmonicEquivalent, filepath)
                         put(noteInstance, it.value)
                     }
                 }

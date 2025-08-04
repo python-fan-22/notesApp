@@ -21,9 +21,10 @@ import kotlin.coroutines.cancellation.CancellationException
 import androidx.compose.runtime.State
 import java.io.File
 import javax.sound.sampled.AudioSystem
+import javax.sound.sampled.LineEvent
 import kotlin.time.Duration.Companion.milliseconds
 
-class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteManager: NoteManager) { // interval is in MS
+class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteManager: NoteManager, val audioFile: File) { // interval is in MS
     private val _counter = mutableStateOf(0)
     val counter: Int get() = _counter.value
 
@@ -56,7 +57,8 @@ class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteMa
                         _counter.value = newCounter
                         _metronomeTick.value = newTick
 
-                        metronomePlayAudio("/home/reuben/IdeaProjects/notesApp/appData/images/sound")
+                        println(newCounter)
+                        metronomePlayAudio()
                         delay(interval)
                     }
 
@@ -80,13 +82,19 @@ class MetronomeState(val interval: Long, val metronomeTickLimit: Int, val noteMa
         scope.cancel()
     }
 
-    fun metronomePlayAudio(audioDir: String) {
-        val trueAudioDir = "$audioDir/tick.wav"
-
+    fun metronomePlayAudio() {
         val tickNoise = AudioSystem.getClip()
-        val audioInputStream = AudioSystem.getAudioInputStream(File(trueAudioDir))
+        val audioInputStream = AudioSystem.getAudioInputStream(audioFile)
 
         tickNoise.open(audioInputStream)
         tickNoise.start()
+
+        // Add a listener to close resources when done playing
+        tickNoise.addLineListener { event ->
+            if (event.type == LineEvent.Type.STOP) {
+                tickNoise.close()
+                audioInputStream.close()
+            }
+        }
     }
 }

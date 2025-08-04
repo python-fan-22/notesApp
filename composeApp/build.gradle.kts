@@ -1,4 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.gradle.jvm.tasks.Jar
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -6,10 +8,21 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     kotlin("plugin.serialization") version "2.2.0"
+
 }
+
+repositories {
+    mavenCentral()
+    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    google()
+}
+
+// Read the buildTarget property from gradle.properties
+val buildTarget = project.findProperty("buildTarget") as String? ?: "jar"
 
 kotlin {
     jvm()
+    linuxX64()
 
     sourceSets {
         commonMain.dependencies {
@@ -40,9 +53,41 @@ compose.desktop {
         mainClass = "com.music.notes.notesapp.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.music.notes.notesapp"
+            // Target formats based on buildTarget property
+            targetFormats(TargetFormat.Deb)
+
+            
+            packageName = "notes"
             packageVersion = "1.0.0"
+
+            appResourcesRootDir.set(File("/home/reuben/IdeaProjects/notesApp/composeApp/src/jvmMain/composeResources"))
+
+
+            // Enhanced Linux configuration
+            linux {
+
+                // Set icon, menu entry, etc. if needed
+                iconFile.set(project.file("/home/reuben/IdeaProjects/notesApp/img.png"))
+                
+                // Set installation directory
+                installationPath = "/opt/notesapp"
+                
+                // Set desktop entry details
+                menuGroup = "Music"
+                shortcut = true
+
+            }
         }
+    }
+}
+
+tasks.register<Copy>("embedAppData") {
+    from(project.layout.projectDirectory.dir("appData"))
+    into(layout.buildDirectory.dir("compose/binaries/main/appData"))
+}
+
+tasks.whenTaskAdded {
+    if (name == "packageDeb") {
+        dependsOn("embedAppData")
     }
 }
